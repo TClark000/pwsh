@@ -1,4 +1,4 @@
-﻿#Function generates a list of filesnames within a path, returns array $FileNames
+#Function generates a list of filesnames within a path, returns array $FileNames
 Function FileList {
 
 param(
@@ -12,12 +12,12 @@ process{
 [array]$script:FileNames = @()
 [array]$FileName = @()
 
-Get-ChildItem $Path | ? {$_.PSIsContainer -eq $False} | % {
+Get-ChildItem $Path | Where-Object {$_.PSIsContainer -eq $False} | ForEach-Object {
     $FileName = New-Object PSObject
     $FileName | Add-Member NoteProperty Name $_.Name
     $script:FileNames += $FileName
     }
 
     }
-    
+
     }
