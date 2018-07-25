@@ -1,4 +1,4 @@
-﻿#Appends multiple csv files from $PathFiles that are named with a matching string from $SearchNames into a single corresponding named csv
+#Appends multiple csv files from $PathFiles that are named with a matching string from $SearchNames into a single corresponding named csv
 #Appended csv are saved into $PathResult (overrides corresponding files)
 #Appended csv then copied into a single xls, 1 csv per worksheet, resulting ss named $PathResultFile
 #Function required 'Function_FileList.ps1'
@@ -9,17 +9,19 @@ Clear-Host
 
 #Query path of csv files
 [string]$PathFiles = "C:\temp"
-$ResponsePath = Read-Host "The default csv path is " $PathFiles ".  Enter a new path or press return for the default shown"
+$Msg = "The default csv path is " + $PathFiles + ".  Enter a new path or press return for the default shown"
+$ResponsePath = Read-Host -prompt $Msg
 If($ResponsePath){
     if(!(Test-Path $ResponsePath -pathType container)){
-    Write-Host "File path is invalid." 
+    Write-Output "File path is invalid."
     break }
     $PathFiles = $ResponsePath}
 
 #query csv name search criteria
 [array]$SearchNames = @("Installed","Admins","Users")
 [array]$ResponseSearch =@()
-$ResponseSearch = Read-Host "Enter a new csv search criteria, separate by comma or press return for the default shown:" `n ($SearchNames -join ", ") `n
+$Msg = "Enter a new csv search criteria, separate by commas or press return for the default shown -`n" + ($SearchNames -join ", ")
+$ResponseSearch = Read-Host $Msg
 If($ResponseSearch){
 $SearchNames = invoke-expression "write-output $ResponseSearch"
 [array]::sort($SearchNames)
@@ -36,6 +38,7 @@ $SearchNames = invoke-expression "write-output $ResponseSearch"
 [string]$PathResultFile = $PathResult + "\Report.xlsx"
 [Int32]$LoopCSV = 0
 [string]$WorksheetName =""
+[string]$Msg = ""
 
 #--------------------------
 #Check search criteria
@@ -59,10 +62,10 @@ foreach ($SearchName in $SearchNames) {
     [array]$CSVCollate = @()
 
     $FilesCollate = $FileNames | Sort-Object Name | Where-Object {$_ -match $SearchName -and $_ -match "csv"}
- 
+
     if ($FilesCollate) {
 
-        $FilesCollate | foreach{
+        $FilesCollate | ForEach-Object{
 
             $CurrentPath = $Pathfiles + "\" + $_.Name
             $CSVCollate += import-csv -Path $CurrentPath
@@ -81,12 +84,13 @@ foreach ($SearchName in $SearchNames) {
 
 #If no csv files break script
 If (!$CSVCollateCount){
-    write-host "No csv files in path" $PathResult "that match the strings:"
-    write-output $SearchNames
+    $Msg = "No csv files in the path " + $PathFiles + " that match the strings:`n" + ($SearchNames -join ", ")
+    Write-Output $Msg
     break}
-
-Write-Host "Unappended csv files | total: " $CSVCollateCount
-Write-Host "Appended csv files | total: " $FoundNames.count
+$Msg = "Unappended csv files total: " + $CSVCollateCount
+Write-Output $Msg
+$Msg = "Appended csv files total: " + $FoundNames.count
+Write-Output $Msg
 
 #Create Excel Object and add workbook/worksheet (newest created worksheet is always 1)
 $excel = new-object -ComObject excel.application
@@ -96,7 +100,7 @@ $workbook = $excel.workbooks.Add()
 $worksheet = $workbook.worksheets.Item(1)
 
 #collate\loop each csv and save into a single excel workbook
-$FoundNames| sort name -Descending | foreach-object {$_} {
+$FoundNames| Sort-Object name -Descending | foreach-object {$_} {
 
         $LoopCSV += 1
         $CurrentPath = $PathResult + "\" + $_.name + ".csv"
@@ -108,7 +112,7 @@ $FoundNames| sort name -Descending | foreach-object {$_} {
 
         #Paste contents of CSV into worksheet
         $worksheet.Paste()
-        
+
         #Name worksheet
         #$WorksheetName = ($_.name -replace ".{4}$" )
         $WorksheetName = ($_.name)
@@ -124,5 +128,6 @@ $FoundNames| sort name -Descending | foreach-object {$_} {
 $workbook.saveas($PathResultFile)
 $Excel.Workbooks.Close()
 $excel.quit()
-write-host "Resulting ss saved as: " $PathResultFile
+$Msg = "Resulting ss saved as: " + $PathResultFile
+Write-Output $Msg
 $error
