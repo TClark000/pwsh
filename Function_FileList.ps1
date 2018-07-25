@@ -2,9 +2,9 @@
 Function FileList {
 
 param(
-[Parameter(position=1,mandatory=$true,HelpMessage="Default path is set to: C:\Temp")]
+[Parameter(position=1,mandatory=$true)]
 [ValidateScript({Test-Path $_ -PathType 'Container'})]
-[string]$Path = 'C:\Temp'
+[string]$Path = ""
 )
 
 process{
