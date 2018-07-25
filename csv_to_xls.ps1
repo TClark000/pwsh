@@ -23,7 +23,7 @@ If($ResponsePath){
 $Msg = "Enter a new csv search criteria, separate by commas or press return for the default shown -`n" + ($SearchNames -join ", ")
 $ResponseSearch = Read-Host $Msg
 If($ResponseSearch){
-$SearchNames = invoke-expression "write-output $ResponseSearch"
+$SearchNames = $ResponseSearch.replace(", ", ",")  -split ","
 [array]::sort($SearchNames)
 }
 
